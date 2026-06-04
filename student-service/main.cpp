@@ -1,12 +1,15 @@
 //
 // Created by Benji on 6/3/2026.
 //
+
+
 #define CPPHTTPLIB_USE_POLL
 #define _WIN32_WINNT 0x0A00
 #include "main.h"
 #include "external/httplib.h"
 #include "external/json.hpp"
 #include <vector>
+#include <iostream>
 using namespace std;
 using json = nlohmann::json;
 using namespace httplib;
@@ -73,6 +76,37 @@ int main() {
                 "{\"error\":\"Student not found\"}",
                 "application/json");
         });
+
+
+    server.Post("/students", [](const httplib::Request& req, httplib::Response& res) {
+        try {
+            json body = json::parse(req.body);
+
+            Student newStudent;
+            newStudent.id = body["id"];
+            newStudent.name = body["name"];
+            newStudent.email = body["email"];
+
+            students.push_back(newStudent);
+
+            json response = {
+               {"success", true},
+               {"message", "Student created"},
+               {"student", {
+                   {"id", newStudent.id},
+                   {"name", newStudent.name},
+                   {"email", newStudent.email}
+               }}
+        };
+                res.status = 201;
+                res.set_content(response.dump(),"application/json");
+        }
+        catch (...) {
+            res.status = 400;
+            res.set_content( R"({"success":false,"error":"Invalid JSON"})",
+                "application/json");
+        }
+    });
 
     std::cout << "Student Service running on port 8001\n";
 

@@ -35,8 +35,8 @@ int main() {
                 json += "{";
                 json += "\"id\":" + to_string(classes[i].id) + ",";
                 json += "\"title\":\"" + classes[i].title + "\",";
-                json += "\"email\":\"" + to_string(classes[i].capacity) + "\"";
-                json += "\"email\":\"" + to_string(classes[i].seatsRemaining) + "\"";
+                json += "\"capacity\":\"" + to_string(classes[i].capacity) + "\",";
+                json += "\"seatsRemaining\":\"" + to_string(classes[i].seatsRemaining) + "\"";
                 json += "}";
 
                 if (i != classes.size() - 1)
@@ -74,6 +74,40 @@ int main() {
                 "{\"error\":\"Student not found\"}",
                 "application/json");
         });
+
+
+
+    server.Post("/classes", [](const httplib::Request& req, httplib::Response& res) {
+        try {
+            json body = json::parse(req.body);
+
+            Class newClass;
+            newClass.id = body["id"];
+            newClass.title = body["title"];
+            newClass.capacity = body["capacity"];
+            newClass.seatsRemaining = body["seatsRemaining"];
+
+            classes.push_back(newClass);
+
+            json response = {
+               {"success", true},
+               {"message", "Class created"},
+               {"Class", {
+                   {"id", newClass.id},
+                   {"title", newClass.title},
+                   {"capacity", newClass.capacity},
+                   {"seatsRemaining", newClass.seatsRemaining},
+               }}
+        };
+                res.status = 201;
+                res.set_content(response.dump(),"application/json");
+        }
+        catch (...) {
+            res.status = 400;
+            res.set_content( R"({"success":false,"error":"Invalid JSON"})",
+                "application/json");
+        }
+    });
 
     cout << "Class Service running on port 8002\n";
 
