@@ -1,0 +1,1 @@
+add_executable(enrollment-service main.cpp)
